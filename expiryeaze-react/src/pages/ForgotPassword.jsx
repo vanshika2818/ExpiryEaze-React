@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { config } from '../lib/config';
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
@@ -18,7 +19,7 @@ const ForgotPassword = () => {
         setMessage('');
 
         try {
-            const response = await fetch('http://localhost:5001/api/v1/auth/forgotpassword', {
+            const response = await fetch(`${config.API_URL}/auth/forgotpassword`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -48,7 +49,7 @@ const ForgotPassword = () => {
         setMessage('');
 
         try {
-            const response = await fetch('http://localhost:5001/api/v1/auth/resetpassword', {
+            const response = await fetch(`${config.API_URL}/auth/resetpassword`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -25,7 +25,7 @@ const loadRazorpayScript = () => {
 /**
  * Get base API URL (without /api/v1) for payment endpoints.
  */
-const getPaymentBaseUrl = () => config.getPaymentBaseUrl?.() || 'http://localhost:5001';
+const getPaymentBaseUrl = () => config.getPaymentBaseUrl?.() || 'https://expiryeaze-backend.onrender.com';
 
 /**
  * Reusable Razorpay Payment component (Test Mode).

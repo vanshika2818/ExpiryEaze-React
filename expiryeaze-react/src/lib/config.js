@@ -2,7 +2,7 @@
 
 export const config = {
   // API Configuration
-  API_URL: process.env.REACT_APP_API_URL || 'http://localhost:5001/api/v1',
+  API_URL: process.env.REACT_APP_API_URL || 'https://expiryeaze-backend.onrender.com/api/v1',
 
   // Environment
   ENV: process.env.REACT_APP_ENV || 'development',
@@ -58,7 +58,7 @@ export const config = {
 
   // Base URL without /api/v1 (for payment endpoints mounted at /api/payment)
   getPaymentBaseUrl: () => {
-    const base = config.API_URL?.replace(/\/api\/v1\/?$/, '') || 'http://localhost:5001';
+    const base = config.API_URL?.replace(/\/api\/v1\/?$/, '') || 'https://expiryeaze-backend.onrender.com';
     return base;
   },
 
