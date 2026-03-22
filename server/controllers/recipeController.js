@@ -75,6 +75,60 @@ Respond ONLY with a valid JSON object matching this exact structure:
     }
 };
 
+const chatWithChef = async (req, res) => {
+    try {
+        const { history = [], message, recipeContext } = req.body;
+        if (!message) {
+            return res.status(400).json({ success: false, error: 'Please provide a message.' });
+        }
+
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || 'AIzaSyDummyKeyForNow' });
+
+        let contents = [];
+        if (history && history.length > 0) {
+            contents = [...history];
+        } else if (recipeContext) {
+            contents.push({
+                role: 'user',
+                parts: [{ text: `I am currently looking at this recipe you generated: ${JSON.stringify(recipeContext)}` }]
+            });
+            contents.push({
+                role: 'model',
+                parts: [{ text: `I'm your AI Chef! How can I help you customize or cook ${recipeContext?.recipeName}?` }]
+            });
+        }
+
+        contents.push({
+            role: 'user',
+            parts: [{ text: message }]
+        });
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: contents,
+            config: {
+                systemInstruction: "You are a friendly, expert zero-waste AI chef. Answer the user's questions about cooking, substitutions, or suggest alternative recipes based on their pantry. Keep responses very concise, helpful, and conversational. Use emojis playfully."
+            }
+        });
+
+        let replyText = response.text;
+        if (typeof replyText === 'function') {
+            replyText = replyText();
+        }
+
+        return res.status(200).json({
+            success: true,
+            reply: replyText,
+            updatedHistory: [...contents, { role: 'model', parts: [{ text: replyText }] }]
+        });
+
+    } catch (error) {
+        console.error('Error in chatWithChef:', error);
+        return res.status(500).json({ success: false, error: 'Failed to communicate with the chef.', details: error.message });
+    }
+};
+
 module.exports = {
-    generateRecipe
+    generateRecipe,
+    chatWithChef
 };
