@@ -262,17 +262,29 @@ const MyItemsPage = () => {
                                             <p className="small">Ask me anything! Like "Can I make this vegan?" or "I don't have tomatoes, what can I use?"</p>
                                         </div>
                                     )}
-                                    {chatHistory.map((msg, idx) => (
-                                        <div key={idx} className={`d-flex mb-3 ${msg.role === 'user' ? 'justify-content-end' : 'justify-content-start'}`}>
-                                            <div 
-                                                className={`p-3 rounded-4 shadow-sm ${msg.role === 'user' ? 'bg-success text-white' : 'bg-white border text-dark'}`} 
-                                                style={{ maxWidth: '85%', fontSize: '0.95rem', lineHeight: '1.5' }}
-                                            >
-                                                {msg.role === 'model' && <ChefHat size={16} className="text-success me-2 mb-1" />}
-                                                {msg.parts[0].text}
+                                    {chatHistory.map((msg, idx) => {
+                                        // Simple markdown bold parser for chat display
+                                        const formatText = (text) => {
+                                            const parts = text.split(/(\*\*.*?\*\*)/g);
+                                            return parts.map((part, i) => {
+                                                if (part.startsWith('**') && part.endsWith('**')) {
+                                                    return <strong key={i}>{part.slice(2, -2)}</strong>;
+                                                }
+                                                return <span key={i}>{part}</span>;
+                                            });
+                                        };
+                                        return (
+                                            <div key={idx} className={`d-flex mb-3 ${msg.role === 'user' ? 'justify-content-end' : 'justify-content-start'}`}>
+                                                <div 
+                                                    className={`p-3 rounded-4 shadow-sm ${msg.role === 'user' ? 'bg-success text-white' : 'bg-white border text-dark'}`} 
+                                                    style={{ maxWidth: '85%', fontSize: '0.95rem', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}
+                                                >
+                                                    {msg.role === 'model' && <ChefHat size={16} className="text-success me-2 mb-1" />}
+                                                    {formatText(msg.parts[0].text)}
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                     {chatLoading && (
                                         <div className="d-flex justify-content-start mb-3">
                                             <div className="p-3 rounded-4 shadow-sm bg-white border text-muted d-flex align-items-center">

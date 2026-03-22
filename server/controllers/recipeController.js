@@ -87,15 +87,6 @@ const chatWithChef = async (req, res) => {
         let contents = [];
         if (history && history.length > 0) {
             contents = [...history];
-        } else if (recipeContext) {
-            contents.push({
-                role: 'user',
-                parts: [{ text: `I am currently looking at this recipe you generated: ${JSON.stringify(recipeContext)}` }]
-            });
-            contents.push({
-                role: 'model',
-                parts: [{ text: `I'm your AI Chef! How can I help you customize or cook ${recipeContext?.recipeName}?` }]
-            });
         }
 
         contents.push({
@@ -107,7 +98,7 @@ const chatWithChef = async (req, res) => {
             model: 'gemini-2.5-flash',
             contents: contents,
             config: {
-                systemInstruction: "You are a friendly, expert zero-waste AI chef. Answer the user's questions about cooking, substitutions, or suggest alternative recipes based on their pantry. Keep responses very concise, helpful, and conversational. Use emojis playfully."
+                systemInstruction: `You are a friendly, expert zero-waste AI chef. The user is currently viewing this recipe: ${JSON.stringify(recipeContext)}. Answer the user's questions about cooking, substitutions, or suggest alternative recipes based on their pantry. Keep responses very concise, helpful, formatted with clear line breaks, and conversational. Use emojis playfully.`
             }
         });
 
