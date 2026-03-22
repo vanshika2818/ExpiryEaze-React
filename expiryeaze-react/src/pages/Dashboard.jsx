@@ -394,8 +394,8 @@ const Dashboard = () => {
 
                     <button
                       className={`btn ${cartItems.some((item) => item.product && item.product._id === product._id)
-                          ? 'btn-secondary'
-                          : 'btn-success'
+                        ? 'btn-secondary'
+                        : 'btn-success'
                         }`}
                       disabled={cartItems.some((item) => item.product && item.product._id === product._id)}
                       onClick={() => handleBuyClick(product._id, getQuantity(product._id))}
@@ -574,8 +574,8 @@ const Dashboard = () => {
 
                   <button
                     className={`btn ${cartItems.some((item) => item.product && item.product._id === selectedProduct._id)
-                        ? 'btn-secondary'
-                        : 'btn-success'
+                      ? 'btn-secondary'
+                      : 'btn-success'
                       }`}
                     disabled={cartItems.some((item) => item.product && item.product._id === selectedProduct._id)}
                     onClick={() => handleBuyClick(selectedProduct._id, getQuantity(selectedProduct._id))}
