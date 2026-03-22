@@ -8,8 +8,8 @@ const ChefFloatingButton = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Don't show for vendors, unauthenticated users, or if already on the /my-items page
-  if (!user || user.role === 'vendor' || location.pathname === '/my-items') {
+  // Don't show for unauthenticated users, or if already on the /my-items page
+  if (!user || location.pathname === '/my-items') {
     return null;
   }
 
