@@ -127,14 +127,14 @@ const JoinWaitlist = () => {
     return (
       <div className="min-vh-100 d-flex align-items-center justify-content-center bg-success bg-opacity-10 py-5">
         <div className="container">
-          <h1 className="display-4 fw-bold text-center text-dark mb-5">Select Your Role</h1>
+          <h1 className="display-4 fw-bold text-center text-white mb-5">Select Your Role</h1>
           
           <div className="row g-4">
             {/* Vendor Card */}
             <div className="col-md-6">
               <div className="card h-100 shadow-sm text-center p-4">
                 <div className="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4" style={{width: '80px', height: '80px'}}>
-                  <span className="display-6">🏢</span>
+                  <span className="display-6"></span>
                 </div>
                 <h2 className="h3 fw-bold mb-3">Vendor</h2>
                 <p className="text-muted mb-4">Register as a business to list your products and manage inventory</p>
@@ -151,7 +151,7 @@ const JoinWaitlist = () => {
             <div className="col-md-6">
               <div className="card h-100 shadow-sm text-center p-4">
                 <div className="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4" style={{width: '80px', height: '80px'}}>
-                  <span className="display-6">👤</span>
+                  <span className="display-6"></span>
                 </div>
                 <h2 className="h3 fw-bold mb-3">User</h2>
                 <p className="text-muted mb-4">Sign up as a consumer to access exclusive deals and manage purchases</p>

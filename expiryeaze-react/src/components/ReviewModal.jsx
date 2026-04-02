@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Star, X, Upload, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import { config } from '../lib/config';
@@ -13,7 +13,6 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, onReviewSubmit, ex
   const [error, setError] = useState('');
 
   const API_URL = config.API_URL;
-  const modalBoxRef = useRef(null);
 
   useEffect(() => {
     if (existingReview) {
@@ -33,15 +32,6 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, onReviewSubmit, ex
   const removeImage = (index) => {
     setImages(prev => prev.filter((_, i) => i !== index));
   };
-
-  // Debug: always run when modal opens to confirm compact styling applied
-  useEffect(() => {
-    if (isOpen && modalBoxRef.current) {
-      const cs = window.getComputedStyle(modalBoxRef.current);
-      // eslint-disable-next-line no-console
-      console.log('[ReviewModal debug] padding:', cs.padding, 'boxShadow:', cs.boxShadow, 'border:', cs.border);
-    }
-  }, [isOpen]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -80,14 +70,12 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, onReviewSubmit, ex
 
       let response;
       if (existingReview) {
-        // Update existing review
         response = await axios.put(
           `${API_URL}/reviews/${existingReview._id}`,
           reviewData,
           config
         );
       } else {
-        // Create new review
         response = await axios.post(
           `${API_URL}/reviews`,
           reviewData,
@@ -96,11 +84,8 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, onReviewSubmit, ex
       }
 
       if (response.data.success) {
-        // Call the callback to update the parent component
         onReviewSubmit(response.data.data);
-        // Close the modal
         onClose();
-        // Reset form
         setRating(0);
         setTitle('');
         setComment('');
@@ -129,7 +114,7 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, onReviewSubmit, ex
 
   return (
     <div className="fixed inset-0 d-flex align-items-center justify-content-center" style={{ background: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
-      <div ref={modalBoxRef} className="bg-white text-dark" style={{ maxWidth: 420, width: '100%', maxHeight: '80vh', overflowY: 'auto', border: '1px solid #dee2e6', borderRadius: 8, boxShadow: 'none' }}>
+      <div className="bg-white text-dark" style={{ maxWidth: 420, width: '100%', maxHeight: '80vh', overflowY: 'auto', border: '1px solid #dee2e6', borderRadius: 8, boxShadow: 'none' }}>
         <div className="p-2">
           <div className="d-flex justify-content-between align-items-center mb-2">
             <h2 className="text-sm fw-bold mb-0">
@@ -166,12 +151,12 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, onReviewSubmit, ex
                     onClick={() => setRating(star)}
                     onMouseEnter={() => setHoveredRating(star)}
                     onMouseLeave={() => setHoveredRating(0)}
-                    className="transition-colors"
+                    className="transition-colors border-0 bg-transparent p-0"
                   >
                     <Star
                       size={16}
-                      fill={star <= (hoveredRating || rating) ? '#fbbf24' : 'none'}
-                      stroke={star <= (hoveredRating || rating) ? '#fbbf24' : '#d1d5db'}
+                      fill={star <= (hoveredRating || rating) ? '#ffc107' : 'none'}
+                      color={star <= (hoveredRating || rating) ? '#ffc107' : '#dee2e6'}
                       className="cursor-pointer"
                     />
                   </button>
@@ -197,7 +182,8 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, onReviewSubmit, ex
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 text-xs"
+                className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none text-xs"
+                style={{ outlineColor: '#198754' }}
                 placeholder="Summarize your experience"
                 maxLength={100}
                 required
@@ -211,7 +197,8 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, onReviewSubmit, ex
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 text-xs"
+                className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none text-xs"
+                style={{ outlineColor: '#198754' }}
                 rows={2}
                 placeholder="Share your experience..."
                 maxLength={500}
@@ -220,56 +207,60 @@ const ReviewModal = ({ isOpen, onClose, vendorId, vendorName, onReviewSubmit, ex
               <p className="text-xs text-muted mt-1 mb-0">{comment.length}/500</p>
             </div>
 
-            {/* Image Upload - Compact */}
-            <div className="mb-2">
-              <label className="block text-xs fw-medium mb-1">Photos (Optional)</label>
-              <div className="grid grid-cols-4 gap-1 mb-1">
+            {/* Image Upload - Compact & Neutral Color */}
+            <div className="mb-3">
+              <label className="block text-xs fw-medium mb-2 text-center">Photos (Optional)</label>
+              <div className="d-flex flex-wrap justify-content-center gap-3 mb-1">
                 {images.map((image, index) => (
-                  <div key={index} className="relative">
+                  <div key={index} className="position-relative" style={{ width: '75px', height: '75px' }}>
                     <img
                       src={image}
                       alt={`Review ${index + 1}`}
-                      className="w-full h-12 object-cover rounded border"
+                      className="w-100 h-100 object-cover rounded border shadow-sm"
                     />
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
-                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5"
+                      className="position-absolute bg-danger text-white rounded-circle p-1 d-flex align-items-center justify-content-center border-0 shadow-sm"
+                      style={{ top: '-6px', right: '-6px', width: '22px', height: '22px' }}
                     >
-                      <Trash2 size={8} />
+                      <Trash2 size={12} />
                     </button>
                   </div>
                 ))}
+                
                 {images.length < 5 && (
-                  <label className="w-full h-12 border border-gray-300 rounded d-flex align-items-center justify-content-center cursor-pointer">
+                  <label 
+                    className="border border-secondary rounded-3 d-flex align-items-center justify-content-center cursor-pointer bg-light transition-colors m-0 shadow-sm"
+                    style={{ width: '75px', height: '75px', borderStyle: 'dashed !important' }}
+                  >
                     <input
                       type="file"
                       accept="image/*"
                       multiple
                       onChange={handleImageUpload}
-                      className="hidden"
+                      className="d-none"
                     />
-                    <Upload size={12} className="text-gray-400" />
+                    <Upload size={22} className="text-secondary" strokeWidth={2} />
                   </label>
                 )}
               </div>
-              <p className="text-xs text-muted mb-0">Max 5 photos</p>
+              <p className="text-xs text-muted mb-0 text-center">Max 5 photos</p>
             </div>
 
-            {/* Submit Button - Compact */}
-            <div className="d-flex gap-2">
+            <div className="d-flex gap-2 pt-1 mt-3">
               <button
                 type="button"
                 onClick={handleClose}
                 disabled={isSubmitting}
-                className="flex-1 px-3 py-1.5 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                className="btn btn-outline-success flex-fill py-2 rounded-3"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 px-3 py-1.5 bg-green-600 text-white rounded text-xs hover:bg-green-700 disabled:opacity-50"
+                className="btn btn-success flex-fill py-2 rounded-3"
               >
                 {isSubmitting ? 'Saving...' : (existingReview ? 'Update' : 'Submit')}
               </button>
