@@ -59,21 +59,38 @@ exports.placeOrder = async (req, res) => {
       });
     }
 
+    // Check if any product in the order requires a prescription
+    let requiresPrescription = false;
+    for (const orderProduct of products) {
+      const product = await Product.findById(orderProduct.product);
+      if (product && product.requiresPrescription) {
+        requiresPrescription = true;
+        break;
+      }
+    }
+
     const order = new Order({
       user: userId,
       products,
       totalAmount,
       shippingAddress,
+      status: requiresPrescription ? 'Pending Prescription' : 'Pending'
     });
     await order.save();
 
     // Send email to user
     try {
       const fullOrder = await Order.findById(order._id).populate('products.product');
+      const statusMessage = requiresPrescription 
+        ? '<p style="color: #e67e22; font-weight: bold;">ACTION REQUIRED: Your order is ON HOLD. One or more items require a prescription. Please upload your prescription to the dashboard to proceed with verification.</p>'
+        : '<p>Your order is being processed and will be shipped soon.</p>';
+        
       const message = `
-        <h1>Order Confirmation</h1>
+        <h1>Order Confirmation - #${order._id.toString().slice(-6)}</h1>
+        ${statusMessage}
         <p>Thank you for your order!</p>
         <p>Order ID: ${order._id}</p>
+        <p>Status: ${order.status}</p>
         <h2>Products:</h2>
         <ul>
           ${fullOrder.products.map(p => `

@@ -11,17 +11,21 @@ const cartRoutes = require('./routes/cartRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const authRoutes = require('./routes/authRoutes');
 const vendorRoutes = require('./routes/vendorRoutes');
-const reviewRoutes = require('./routes/reviewRoutes');
-const prescriptionRoutes = require('./routes/prescriptionRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const recipeRoutes = require('./routes/recipeRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const checkExpiries = require('./utils/expiryChecker');
 
 // Initialize Express app
 const app = express();
 
 // Connect to Database
 connectDB();
+
+// Run Expiry Check on startup and every 12 hours
+checkExpiries();
+setInterval(checkExpiries, 12 * 60 * 60 * 1000); // 12 hours in milliseconds
 
 // Middleware
 app.use(cors()); // Allow cross-origin requests
@@ -54,6 +58,7 @@ app.use('/api/v1/prescriptions', prescriptionRoutes);
 app.use('/api/v1/recipes', recipeRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
 
 const PORT = process.env.PORT || 5001;
 

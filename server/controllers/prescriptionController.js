@@ -1,5 +1,6 @@
 const Prescription = require('../models/Prescription');
 const Product = require('../models/Product');
+const Order = require('../models/Order');
 const multer = require('multer');
 const path = require('path');
 
@@ -232,9 +233,14 @@ exports.updatePrescriptionStatus = async (req, res) => {
 
     await prescription.save();
 
+    // If approved, update the linked order status
+    if (verificationStatus === 'approved' && prescription.order) {
+      await Order.findByIdAndUpdate(prescription.order, { status: 'Pending' });
+    }
+
     res.status(200).json({
       success: true,
-      message: 'Prescription status updated successfully',
+      message: `Prescription status updated successfully. ${verificationStatus === 'approved' ? 'Linked order has been released.' : ''}`,
       data: prescription,
     });
   } catch (err) {
