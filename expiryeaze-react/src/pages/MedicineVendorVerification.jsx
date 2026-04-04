@@ -87,7 +87,6 @@ const MedicineVendorVerification = () => {
       });
       if (res.data?.success) {
         setSuccess(true);
-        setTimeout(() => navigate('/medicines-dashboard'), 2000);
       } else {
         setError(res.data?.error || 'Submission failed');
       }
@@ -106,16 +105,26 @@ const MedicineVendorVerification = () => {
             <div className="card shadow-sm border-success">
               <div className="card-body p-5 text-center">
                 <div className="text-success mb-4">
-                  <i className="fas fa-check-circle" style={{ fontSize: '4rem' }}></i>
+                  <i className="fas fa-phone-alt animate-bounce" style={{ fontSize: '4rem' }}></i>
                 </div>
-                <h2 className="fw-bold text-success mb-3">Verification Submitted Successfully!</h2>
+                <h2 className="fw-bold text-success mb-3">Application Submitted!</h2>
+                <div className="alert alert-info py-4 px-4 my-4">
+                   <h5 className="fw-bold mb-3"><i className="fas fa-user-md me-2"></i>What happens next?</h5>
+                   <p className="mb-0 text-dark" style={{ lineHeight: '1.6' }}>
+                      To ensure platform safety, your application must first be manually verified by our medical officer. 
+                      <strong> You will receive a verification call from our certified medical officer </strong> 
+                      shortly to confirm your credentials. 
+                      <br /><br />
+                      Once the verification is complete, you will be granted full access. Please check back after some time.
+                   </p>
+                </div>
                 <p className="text-muted mb-4">
-                  Thank you for submitting your verification documents. Our team will review your application 
-                  within 2-3 business days. You will receive an email notification once your account is verified.
+                  Once verified, your Medicine Vendor Dashboard will be automatically activated.
                 </p>
-                <div className="alert alert-info">
-                  <i className="fas fa-info-circle me-2"></i>
-                  You will be redirected to the medicines dashboard shortly...
+                <div className="d-grid gap-2 col-md-6 mx-auto">
+                    <button className="btn btn-success btn-lg rounded-pill" onClick={() => navigate('/')}>
+                        <i className="fas fa-home me-2"></i> Return to Home
+                    </button>
                 </div>
               </div>
             </div>

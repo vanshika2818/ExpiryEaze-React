@@ -216,8 +216,48 @@ const MedicinesDashboard = () => {
         fetchProducts();
     };
 
-    if (loading) return <div className="p-5 text-center"><h3>Loading Medicines...</h3></div>;
+    if (loading || profileLoading) return <div className="p-5 text-center"><h3>Loading Dashboard...</h3></div>;
     if (error) return <div className="p-5 text-center text-danger"><h3>{error}</h3></div>;
+
+    // --- VERIFICATION GATE ---
+    if (profile && !profile.isMedicineVerified) {
+        return (
+            <div className="container py-5">
+                <div className="row justify-content-center">
+                    <div className="col-lg-8">
+                        <div className="card shadow border-warning">
+                            <div className="card-body p-5 text-center">
+                                <div className="mb-4 text-warning">
+                                    <i className="fas fa-user-md" style={{ fontSize: '5rem' }}></i>
+                                </div>
+                                <h1 className="fw-bold mb-3">Verification Pending</h1>
+                                <div className="alert alert-warning py-4 px-4 my-4 shadow-sm">
+                                    <h5 className="fw-bold mb-3 text-dark">Identity Verification in Progress</h5>
+                                    <p className="text-dark mb-0" style={{ fontSize: '1.1rem', lineHeight: '1.7' }}>
+                                        Hello, <strong>{profile.name}</strong>. Our certified medical officer must first verify 
+                                        your credentials and pharmacy licenses before you can access this department.
+                                        <br /><br />
+                                        <strong>You will receive a verification call shortly.</strong> 
+                                        Once our officer authorizes your profile, your dashboard will be activated. 
+                                        Please visit the website again after some time.
+                                    </p>
+                                </div>
+                                <p className="text-muted mb-5">
+                                    Your dashboard and "Add Product" features will be unlocked once approved.
+                                </p>
+                                <div className="d-grid gap-3 col-md-6 mx-auto">
+                                    <button className="btn btn-outline-secondary rounded-pill" onClick={() => navigate('/')}>
+                                        <i className="fas fa-home me-2"></i> Go To Homepage
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+    // -------------------------
 
     return (
         <div className="container-fluid py-4">
