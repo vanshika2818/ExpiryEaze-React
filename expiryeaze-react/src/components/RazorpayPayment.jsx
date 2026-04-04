@@ -53,6 +53,7 @@ const RazorpayPayment = ({ children, className }) => {
     const baseUrl = getPaymentBaseUrl();
     const orderUrl = `${baseUrl}/api/payment/order`;
     const verifyUrl = `${baseUrl}/api/payment/verify`;
+    console.log('🔗 Payment URLs:', { orderUrl, verifyUrl });
 
     try {
       // 1. Fetch order ID from backend

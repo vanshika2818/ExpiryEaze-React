@@ -7,7 +7,11 @@ const getRazorpayInstance = () => {
   const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
   if (!keyId || !keySecret) {
-    throw new Error('RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET must be set in .env');
+    const missing = [];
+    if (!keyId) missing.push('RAZORPAY_KEY_ID');
+    if (!keySecret) missing.push('RAZORPAY_KEY_SECRET');
+    console.error(`❌ Payment Configuration Error: Missing ${missing.join(' and ')} in environment.`);
+    throw new Error(`Payment configuration error: ${missing.join(' and ')} is missing.`);
   }
 
   return new Razorpay({

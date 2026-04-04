@@ -139,6 +139,10 @@ const Checkout = () => {
 
     const subtotal = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
     const amountInPaise = Math.round(subtotal * 100);
+    console.log('💳 Payment Initialization:', { 
+      amountInPaise, 
+      orderUrl: `${config.getPaymentBaseUrl()}/api/payment/order` 
+    });
     if (amountInPaise < 100) {
       setGlobalError('Order total must be at least ₹1 (100 paise).');
       return;
