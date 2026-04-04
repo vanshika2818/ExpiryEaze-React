@@ -1,13 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import axios from 'axios';
+import { config } from '../lib/config';
 
 const Header = () => {
   const { user, logout } = useAuth();
+  const { token } = useAuth(); // Assuming useAuth provides token
   const navigate = useNavigate();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [notifOpen, setNotifOpen] = useState(false);
+
+  const fetchNotifications = async () => {
+    if (!user) return;
+    try {
+      const res = await axios.get(`${config.API_URL}/notifications`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (res.data.success) {
+        setNotifications(res.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch notifications');
+    }
+  };
+
+  const markAsRead = async (id) => {
+    try {
+      await axios.put(`${config.API_URL}/notifications/${id}/read`, {}, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
+    } catch (err) {
+      console.error('Failed to mark as read');
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchNotifications();
+      const interval = setInterval(fetchNotifications, 60000); // Check every minute
+      return () => clearInterval(interval);
+    }
+  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -106,10 +144,67 @@ const Header = () => {
               </button>
             )}
 
+            {/* Notification Bell */}
+            {user && (
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setNotifOpen(!notifOpen);
+                    setDropdownOpen(false);
+                    if (!notifOpen) fetchNotifications();
+                  }}
+                  className="relative font-bold text-gray-700 hover:text-success transition duration-300 px-3 py-2 rounded-full hover:bg-success-light"
+                >
+                  <i className="fas fa-bell h-5 w-5"></i>
+                  {notifications.filter(n => !n.isRead).length > 0 && (
+                    <span className="absolute top-1 right-1 bg-danger text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-white animate-pulse">
+                      {notifications.filter(n => !n.isRead).length}
+                    </span>
+                  )}
+                </button>
+                {notifOpen && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl py-2 z-50 border border-gray-100 max-h-[400px] overflow-y-auto">
+                    <div className="px-4 py-2 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                      <span className="font-bold text-gray-800">Notifications</span>
+                      <span className="text-xs text-success cursor-pointer hover:underline" onClick={() => setNotifications([])}>Clear all</span>
+                    </div>
+                    {notifications.length === 0 ? (
+                      <div className="px-4 py-8 text-center text-gray-500">
+                        <i className="fas fa-bell-slash mb-2 block text-2xl opacity-20"></i>
+                        <p className="text-sm">No new alerts</p>
+                      </div>
+                    ) : (
+                      notifications.map(notif => (
+                        <div 
+                          key={notif._id} 
+                          className={`px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-0 transition-colors ${!notif.isRead ? 'bg-success-light/30' : ''}`}
+                          onClick={() => markAsRead(notif._id)}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${notif.type === 'ExpiryWarning' ? 'bg-danger' : 'bg-info'}`} />
+                            <div className="flex-1">
+                              <p className="text-sm font-bold text-gray-800 mb-0.5">{notif.title}</p>
+                              <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">{notif.message}</p>
+                              <span className="text-[10px] text-gray-400 mt-1 block">
+                                {new Date(notif.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             {user ? (
               <div className="relative">
                 <button
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  onClick={() => {
+                    setDropdownOpen(!dropdownOpen);
+                    setNotifOpen(false);
+                  }}
                   className="flex items-center space-x-1 font-bold text-gray-700 hover:text-success transition duration-300 px-3 py-2 rounded-full hover:bg-success-light"
                 >
                   <i className="fas fa-user h-5 w-5"></i>
