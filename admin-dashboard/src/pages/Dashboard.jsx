@@ -21,10 +21,14 @@ const Dashboard = () => {
     ordersByStatus: {}, productsByCategory: {}
   });
   const [verifications, setVerifications] = useState([]);
+  const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedApp, setSelectedApp] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  
+  const [selectedPrescription, setSelectedPrescription] = useState(null);
+  const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -45,6 +49,9 @@ const Dashboard = () => {
 
       const verificationsRes = await axios.get(`${config.API_URL}/admin/medicine-verifications?status=pending`, { headers });
       setVerifications(verificationsRes.data.data);
+
+      const prescriptionsRes = await axios.get(`${config.API_URL}/prescriptions?status=pending`, { headers });
+      setPrescriptions(prescriptionsRes.data.data);
     } catch (err) {
       setError('Failed to load admin data');
     } finally {
@@ -75,6 +82,32 @@ const Dashboard = () => {
       fetchDashboardData();
     } catch (err) {
       alert("Error rejecting application");
+    }
+  };
+
+  const handleApprovePrescription = async (id) => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      await axios.put(`${config.API_URL}/prescriptions/${id}/status`, { verificationStatus: "approved" }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setShowPrescriptionModal(false);
+      fetchDashboardData();
+    } catch (err) {
+      alert("Error approving prescription");
+    }
+  };
+
+  const handleRejectPrescription = async (id) => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      await axios.put(`${config.API_URL}/prescriptions/${id}/status`, { verificationStatus: "rejected", notes: "Rejected by admin" }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setShowPrescriptionModal(false);
+      fetchDashboardData();
+    } catch (err) {
+      alert("Error rejecting prescription");
     }
   };
 
@@ -324,6 +357,56 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* Pending Prescriptions Table Queue */}
+        <div className="card mt-5" style={{ ...glassStyle, overflow: 'hidden' }}>
+          <div className="card-header border-bottom-0 py-4" style={{ background: 'rgba(0,0,0,0.2)' }}>
+            <h4 className="fw-bold mb-0 text-white"><i className="fas fa-file-prescription me-2 text-danger"></i> Action Required: Patient Prescriptions</h4>
+          </div>
+          <div className="card-body p-0">
+            <div className="table-responsive">
+              <table className="table table-borderless table-hover align-middle mb-0 text-white" style={{ '--bs-table-bg': 'transparent', '--bs-table-color': '#f8fafc', '--bs-table-hover-bg': 'rgba(255,255,255,0.05)' }}>
+                <thead style={{ background: 'rgba(255,255,255,0.05)' }}>
+                  <tr>
+                    <th className="ps-4 py-3 fw-light text-uppercase" style={{ letterSpacing: '1px', fontSize: '0.8rem' }}>Patient Name</th>
+                    <th className="py-3 fw-light text-uppercase">Medicine</th>
+                    <th className="py-3 fw-light text-uppercase">Condition</th>
+                    <th className="py-3 fw-light text-uppercase">Submitted</th>
+                    <th className="text-end pe-4 py-3 fw-light text-uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {prescriptions.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="text-center py-5 text-secondary">
+                        <i className="fas fa-check-circle fa-3x mb-3 text-success opacity-50"></i><br/>
+                        All prescriptions have been verified. Queue is empty.
+                      </td>
+                    </tr>
+                  ) : (
+                    prescriptions.map(pres => (
+                      <tr key={pres._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <td className="ps-4 fw-bold">{pres.patientName} <small className="text-muted d-block">Age: {pres.patientAge}</small></td>
+                        <td><span className="badge rounded-pill bg-danger text-white text-capitalize px-3 py-2">{pres.product?.name || 'Unknown'}</span></td>
+                        <td className="opacity-75">{pres.medicalCondition}</td>
+                        <td className="opacity-75">{new Date(pres.createdAt).toLocaleDateString()}</td>
+                        <td className="text-end pe-4">
+                          <button 
+                            className="btn btn-sm btn-outline-danger rounded-pill px-4 fw-bold shadow-sm"
+                            onClick={() => { setSelectedPrescription(pres); setShowPrescriptionModal(true); }}
+                          >
+                            Review
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       {/* Futuristic Modal Overlay */}
@@ -417,6 +500,87 @@ const Dashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Prescription Audit Modal */}
+      {showPrescriptionModal && selectedPrescription && (
+        <div className="modal show fade d-block w-100 h-100" style={{ background: 'rgba(0, 0, 0, 0.8)', backdropFilter: 'blur(8px)', zIndex: 1050 }} tabIndex="-1">
+          <div className="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+            <div className="modal-content text-white" style={{ ...glassStyle, border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+              <div className="modal-header border-bottom-0 py-4 px-5 bg-black bg-opacity-25">
+                <h4 className="modal-title fw-bold text-danger"><i className="fas fa-briefcase-medical me-3"></i>Prescription Audit: {selectedPrescription.patientName}</h4>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowPrescriptionModal(false)}></button>
+              </div>
+              <div className="modal-body p-5">
+                <div className="row g-5">
+                  <div className="col-md-6">
+                    <div className="p-4 rounded-4 h-100" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <h5 className="fw-bold text-danger mb-4 text-uppercase" style={{ letterSpacing: '2px' }}><i className="fas fa-user-injured me-2"></i>Patient Log</h5>
+                      <div className="mb-3 d-flex justify-content-between border-bottom pb-2 border-secondary border-opacity-25">
+                        <span className="opacity-50">Name</span> <span className="fw-bold">{selectedPrescription.patientName} ({selectedPrescription.patientAge}, {selectedPrescription.patientGender})</span>
+                      </div>
+                      <div className="mb-3 d-flex justify-content-between border-bottom pb-2 border-secondary border-opacity-25">
+                        <span className="opacity-50">Condition</span> <span>{selectedPrescription.medicalCondition}</span>
+                      </div>
+                      <div className="mb-3 d-flex justify-content-between pb-2 border-bottom pb-2 border-secondary border-opacity-25">
+                        <span className="opacity-50">Reason</span> <span className="text-end">{selectedPrescription.reasonForPurchase}</span>
+                      </div>
+                      <div className="mb-3 d-flex justify-content-between pb-2">
+                        <span className="opacity-50">Contact</span> <span>{selectedPrescription.contactNumber}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-md-6">
+                     <div className="p-4 rounded-4 h-100" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <h5 className="fw-bold text-warning mb-4 text-uppercase" style={{ letterSpacing: '2px' }}><i className="fas fa-user-md me-2"></i>Physician Detail</h5>
+                      <div className="mb-3 d-flex justify-content-between border-bottom pb-2 border-secondary border-opacity-25">
+                        <span className="opacity-50">Doctor Name</span> <span className="fw-bold">{selectedPrescription.doctorName || 'N/A'}</span>
+                      </div>
+                      <div className="mb-3 d-flex justify-content-between border-bottom pb-2 border-secondary border-opacity-25">
+                        <span className="opacity-50">Clinic</span> <span className="text-end">{selectedPrescription.hospitalClinicName || 'N/A'}</span>
+                      </div>
+                      <div className="mb-3 d-flex justify-content-between pb-2">
+                        <span className="opacity-50">Phone</span> <span>{selectedPrescription.doctorPhone || 'N/A'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-12">
+                     <div className="p-4 rounded-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <h5 className="fw-bold text-info mb-4 text-uppercase" style={{ letterSpacing: '2px' }}><i className="fas fa-file-image me-2"></i>Attached Documents</h5>
+                      <div className="d-flex flex-wrap gap-4 mt-3">
+                        {selectedPrescription.prescriptionDocuments && selectedPrescription.prescriptionDocuments.map((doc, idx) => (
+                          <div key={idx} className="text-center">
+                            <a href={`${config.API_URL.replace('/api/v1', '')}/${doc}`} target="_blank" rel="noopener noreferrer">
+                               <img src={`${config.API_URL.replace('/api/v1', '')}/${doc}`} alt={`Prescription ${idx}`} style={{ height: '200px', objectFit: 'contain', border: '1px solid #444' }} className="rounded" />
+                            </a>
+                            <div className="mt-2 opacity-75 small">Document {idx + 1}</div>
+                          </div>
+                        ))}
+                        {selectedPrescription.prescriptionDocuments?.length === 0 && (
+                          <span className="text-danger">No documents uploaded.</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer border-top-0 p-5 bg-black bg-opacity-25 d-flex justify-content-between">
+                <button type="button" className="btn btn-outline-light rounded-pill px-5 fw-bold" onClick={() => setShowPrescriptionModal(false)}>Close View</button>
+                <div>
+                  <button type="button" className="btn btn-danger rounded-pill fw-bold px-5 py-2 me-3 shadow-lg" onClick={() => handleRejectPrescription(selectedPrescription._id)}>
+                    <i className="fas fa-ban me-2"></i> Reject Setup
+                  </button>
+                  <button type="button" className="btn btn-success rounded-pill fw-bold px-5 py-2 shadow-lg" onClick={() => handleApprovePrescription(selectedPrescription._id)}>
+                    <i className="fas fa-check-double me-2"></i> Approve Prescription
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

@@ -75,12 +75,9 @@ const Cart = () => {
     fetchUserPrescriptions();
   }, [user]);
 
-  const hasPrescriptionForProduct = (productId) => {
-    return userPrescriptions.some(
-      prescription => 
-        prescription.product === productId && 
-        prescription.verificationStatus === 'approved'
-    );
+  const getPrescriptionForProduct = (productId) => {
+    // We want the most recent prescription if multiple exist, but usually there's one active
+    return userPrescriptions.find(p => p.product === productId) || null;
   };
 
   const handleCheckout = () => {
@@ -89,16 +86,25 @@ const Cart = () => {
       return;
     }
 
-    // Check if any items require prescription and user hasn't uploaded one
-    const prescriptionRequired = prescriptionProducts.filter(
-      item => !hasPrescriptionForProduct(item.product._id)
-    );
-
-    if (prescriptionRequired.length > 0) {
-      // Show alert with the first product that needs prescription
-      setSelectedPrescriptionProduct(prescriptionRequired[0].product);
-      setPrescriptionModalOpen(true);
-      return;
+    // Check prescription statuses
+    for (const item of prescriptionProducts) {
+      const rx = getPrescriptionForProduct(item.product._id);
+      if (!rx) {
+        // Missing entirely
+        setSelectedPrescriptionProduct(item.product);
+        setPrescriptionModalOpen(true);
+        return;
+      }
+      if (rx.verificationStatus === 'pending') {
+        alert('Admin has received your form. Please wait until your prescription is verified before checking out this item.');
+        return;
+      }
+      if (rx.verificationStatus === 'rejected') {
+        alert(`Your prescription for ${item.product.name} was rejected. Please upload a new one.`);
+        setSelectedPrescriptionProduct(item.product);
+        setPrescriptionModalOpen(true);
+        return;
+      }
     }
 
     // Pass shipping information to checkout
@@ -213,7 +219,6 @@ const Cart = () => {
               <div className="card-body p-0">
                 {cartItems.map((item) => {
                   const needsPrescription = item.product?.requiresPrescription;
-                  const hasPrescription = hasPrescriptionForProduct(item.product?._id);
                   
                   return (
                     <div key={item._id || item.id} className="border-bottom p-4">
@@ -236,12 +241,29 @@ const Cart = () => {
                                 {Math.round(((item.product.price - item.product.discountedPrice) / item.product.price) * 100)}% OFF
                               </span>
                             )}
-                            {needsPrescription && (
-                              <span className={`badge ${hasPrescription ? 'bg-info' : 'bg-warning text-dark'}`}>
-                                <FileText size={12} className="me-1" />
-                                {hasPrescription ? 'Prescription Uploaded' : 'Prescription Required'}
-                              </span>
-                            )}
+                            {needsPrescription && (() => {
+                              const rx = getPrescriptionForProduct(item.product?._id);
+                              if (!rx) return (
+                                <span className="badge bg-warning text-dark">
+                                  <FileText size={12} className="me-1" /> Prescription Required
+                                </span>
+                              );
+                              if (rx.verificationStatus === 'pending') return (
+                                <span className="badge bg-secondary">
+                                  <FileText size={12} className="me-1" /> Pending Approval
+                                </span>
+                              );
+                              if (rx.verificationStatus === 'rejected') return (
+                                <span className="badge bg-danger">
+                                  <FileText size={12} className="me-1" /> Rejected
+                                </span>
+                              );
+                              return (
+                                <span className="badge bg-info">
+                                  <FileText size={12} className="me-1" /> Approved
+                                </span>
+                              );
+                            })()}
                           </div>
                         </div>
                                              <div className="col-md-2 text-center">
