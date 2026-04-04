@@ -15,6 +15,7 @@ const reviewRoutes = require('./routes/reviewRoutes');
 const prescriptionRoutes = require('./routes/prescriptionRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const recipeRoutes = require('./routes/recipeRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 // Initialize Express app
 const app = express();
@@ -52,6 +53,7 @@ app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/prescriptions', prescriptionRoutes);
 app.use('/api/v1/recipes', recipeRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/v1/admin', adminRoutes);
 
 const PORT = process.env.PORT || 5001;
 

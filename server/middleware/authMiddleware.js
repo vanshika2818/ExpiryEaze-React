@@ -13,4 +13,18 @@ exports.authMiddleware = (req, res, next) => {
   } catch (err) {
     res.status(401).json({ success: false, error: 'Invalid token.' });
   }
-}; 
+};
+
+const User = require('../models/User');
+
+exports.adminRoleMiddleware = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ success: false, error: 'Access denied. Admin role required.' });
+    }
+    next();
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'Server Error' });
+  }
+};

@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const Product = require('../models/Product');
+const MedicineVerification = require('../models/MedicineVerification');
 
 // @desc      Handle medicine authentication for vendors
 // @route     POST /api/v1/vendors/medicine-auth
@@ -122,16 +123,62 @@ exports.getMedicineVerificationStatus = async (req, res) => {
         .status(404)
         .json({ success: false, error: "Vendor not found." });
     }
-    
+
     // Check if vendor is verified for medicine sales
     const isVerified = user.isMedicineVerified === true;
-    
-    res.status(200).json({ 
-      success: true, 
+
+    res.status(200).json({
+      success: true,
       isVerified: isVerified,
       message: isVerified ? "Vendor is verified for medicine sales" : "Vendor needs verification for medicine sales"
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+// @desc      Submit medicine vendor verification form
+// @route     POST /api/v1/vendors/verify
+// @access    Private (for vendors)
+exports.submitVerification = async (req, res) => {
+  try {
+    const vendorId = req.user.id;
+    const user = await User.findById(vendorId);
+    
+    if (!user || user.role !== "vendor") {
+      return res.status(404).json({ success: false, error: "Vendor not found." });
+    }
+
+    // Check if a pending or approved verification already exists
+    const existing = await MedicineVerification.findOne({
+      vendor: vendorId,
+      status: { $in: ["pending", "approved"] }
+    });
+
+    if (existing) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "You already have a pending or approved verification application." 
+      });
+    }
+
+    const verificationPayload = {
+      ...req.body,
+      vendor: vendorId,
+      status: "pending"
+    };
+
+    const verification = new MedicineVerification(verificationPayload);
+    await verification.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Verification application submitted successfully.",
+      data: verification
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: "Server Error" });
   }
 };
