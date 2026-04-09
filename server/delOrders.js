@@ -1,9 +1,8 @@
 const mongoose = require('mongoose');
 const Order = require('./models/Order');
 
-const uri = "mongodb+srv://expiryeaze-user:rashi12345@expiryeazecluster.id2x2f0.mongodb.net/?appName=ExpiryEazeCluster";
 
-mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(async () => {
     console.log("Connected to DB, deleting all orders...");
     const result = await Order.deleteMany({});
